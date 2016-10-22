@@ -11,12 +11,12 @@
  * Setup function which is run once on startup 
  */
 void setup(void) {
-
+    DDRB = 0xDF; //Set up PB0-PB6 as output for LEDs 
 }
 
 int main(void)
 {
-    DDRB = 0x01;    //Set PB0 as output
+    setup();
     for(;;){
         PORTB ^= 0x01;  //Toggle PB0 
         _delay_ms(10);

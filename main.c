@@ -9,7 +9,7 @@
 #include <avr/interrupt.h>
 
 void setup(void);
-void setupUART(uint16_t baud);
+void setupUART(uint32_t baud);
 
 /**
  * Setup function which is run once on startup 
@@ -22,7 +22,7 @@ void setup(void) {
 /**
  * Sets up hardware UART given baud rate up to 65536 
  */
-void setupUART(uint16_t baud) {
+void setupUART(uint32_t baud) {
     //Set the ubrr value to generate baud rate 
     uint16_t ubrr = (F_CPU)/((uint32_t)16 * baud) - 1; 
     //uint16_t ubrr = 51;
@@ -38,22 +38,34 @@ void setupUART(uint16_t baud) {
     UCSR0C = (3<<UCSZ00);
 }
 
+void sendByte(uint8_t byte) {
+    // wait until port is ready to be written to
+    while( ( UCSR0A & ( 1 << UDRE0 ) ) == 0 ){}
+
+    // write the byte to the serial port
+    UDR0 = byte;
+}
+
+uint8_t recieveByte() {
+    // wait until a byte is in the buffer  
+    while( ( UCSR0A & ( 1 << RXC0 ) ) == 0 ){}
+
+    // grab the byte from the serial port
+    return UDR0;
+}
+
 int main(void)
 {
     setup();
-    char recieved_byte;
+    uint8_t recieved_byte;
     for(;;){
-        // wait until a byte is ready to read
-        while( ( UCSR0A & ( 1 << RXC0 ) ) == 0 ){}
- 
-        // grab the byte from the serial port
-        recieved_byte = UDR0;
-       
-        // wait until the port is ready to be written to
-        while( ( UCSR0A & ( 1 << UDRE0 ) ) == 0 ){}
- 
-        // write the byte to the serial port
-        UDR0 = recieved_byte;
+        recieved_byte = recieveByte();
+        if (recieved_byte == 13) {
+            sendByte('\n');
+            sendByte('\r');
+        } else {
+            sendByte(recieved_byte);
+        }
     }
     return 0;   /* never reached */
 }

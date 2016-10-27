@@ -1,4 +1,6 @@
 main.elf
 main.hex
-main.o
 .main.*
+*.o
+*.swp
+tests/scratchpad

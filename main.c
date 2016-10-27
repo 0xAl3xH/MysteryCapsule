@@ -3,6 +3,7 @@
  * 10/21/16
  */
 #define F_CPU 8000000
+#define BAUD_RATE 9600
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -10,17 +11,19 @@
 
 void setup(void);
 void setupUART(uint32_t baud);
+void sendByte(uint8_t byte);
+uint8_t recieveByte();
 
 /**
  * Setup function which is run once on startup 
  */
 void setup(void) {
     DDRB = 0xDF; //Set up PB0-PB6 as output for LEDs 
-    setupUART(9600);
+    setupUART(BAUD_RATE);
 }
 
 /**
- * Sets up hardware UART given baud rate up to 65536 
+ * Sets up hardware UART given baud rate
  */
 void setupUART(uint32_t baud) {
     //Set the ubrr value to generate baud rate 
@@ -28,7 +31,7 @@ void setupUART(uint32_t baud) {
     //uint16_t ubrr = 51;
     UBRR0H = ubrr >> 8;
     UBRR0L = ubrr;
-    
+        
     //UBRR0H = 0;
     //UBRR0L = 51;    
 

@@ -1,3 +1,5 @@
+#ifndef BLOCK_H
+#define BLOCK_H
 /*
  * This is an implementation of the blocks in a standard 2048 game. 
  * Each block is represented by a value, which should accomodate
@@ -7,3 +9,4 @@
 typedef struct {
     uint16_t value;
 } Block;
+#endif

@@ -1,3 +1,5 @@
+#ifndef BOARD_H
+#define BOARD_H
 /*
  * This is an implementation of a standard 2048 game board, which has 4x4 = 16 cells.
  * The grid is represented by a 2D array that contains Blocks
@@ -63,4 +65,6 @@ Boolean Board_shift(Direction dir, Board * gameBoard);
  *     positions
  * The function returns a boolean value of TRUE if the game is indeed over 
  */
-Boolean gameOver(void); 
+Boolean Board_gameOver(Board *board); 
+
+#endif

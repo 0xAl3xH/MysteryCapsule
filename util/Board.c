@@ -149,3 +149,13 @@ Boolean Board_shift(Direction dir, Board *gameBoard) {
     }     
     return !Board_equal(gameBoard, &board);
 }
+
+Boolean Board_gameOver(Board *board) {
+    Board gameBoard = *board;
+    Direction allDirs[4] = {UP,DOWN,LEFT,RIGHT};
+    for (int i = 0; i < 4; i++) {
+        if(!Board_shift(allDirs[i], &gameBoard))
+            return TRUE; 
+    }
+    return FALSE;
+}

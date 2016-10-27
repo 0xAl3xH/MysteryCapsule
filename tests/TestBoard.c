@@ -336,6 +336,7 @@ void test_board_shift_combo_twos(void) {
     Board_shift(RIGHT, &board);
     printBoard(&board);
     TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_FALSE(Board_gameOver(&board) == FALSE);
 }
 
 void test_board_shift_combo_different(void) {
@@ -386,6 +387,7 @@ void test_board_no_moves(void) {
     printBoard(&board);
     TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
     TEST_ASSERT_TRUE(moved == FALSE); 
+    TEST_ASSERT_TRUE(Board_gameOver(&board) == TRUE);
 }
 
 void printBoard(Board * board) {
@@ -429,5 +431,6 @@ RUN_TEST(test_board_shift_up_different);
 RUN_TEST(test_board_shift_combo_twos);
 RUN_TEST(test_board_shift_combo_different);
 
+RUN_TEST(test_board_no_moves);
 return UNITY_END();
 }

@@ -11,10 +11,12 @@
 #include <stdio.h>
 
 void setup(void);
+void setupADC(void);
 void setupUART(uint32_t baud);
 void sendByte(uint8_t byte);
 void sendBytePrintf(uint8_t byte, FILE *stream);
-uint8_t recieveByte();
+uint8_t recieveByte(void);
+uint16_t adcRead(void);
 
 //Set up stream to use to redirect stdout characters  to UART send function 
 static FILE uartSTDOUT = FDEV_SETUP_STREAM(sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
@@ -27,6 +29,15 @@ void setup(void) {
     setupUART(BAUD_RATE);
     //Bind stdout to print via UART
     stdout = &uartSTDOUT;
+    setupADC();
+}
+
+/**
+ * Sets up ADC 
+ */
+void setupADC(void) {
+    ADCSRA |= (3 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //set prescaler to 64
+    ADCSRA |= (1 << ADEN); //Enable ADC 
 }
 
 /**
@@ -65,12 +76,20 @@ void sendByte(uint8_t byte) {
     UDR0 = byte;
 }
 
-uint8_t recieveByte() {
+uint8_t recieveByte(void) {
     // wait until a byte is in the buffer  
     while( ( UCSR0A & ( 1 << RXC0 ) ) == 0 ){}
 
     // grab the byte from the serial port
     return UDR0;
+}
+
+uint16_t adcRead(void) {
+    ADCSRA |= (1 << ADSC);  //Start a new conversion;
+    while (ADCSRA & (1<<ADSC)){} //Wait until ADC conversion complete
+    uint16_t retVal = ADCL; //Record the results
+    retVal |= ADCH << 8;
+    return retVal;
 }
 
 int main(void)
@@ -80,10 +99,11 @@ int main(void)
     for(;;){
         recieved_byte = recieveByte();
         if (recieved_byte == 13) {
-            sendByte('\n');
-            sendByte('\r');
-        } else {
-            sendByte(recieved_byte);
+            for (int i = 0; i < 1000; i++) {
+                uint16_t result = adcRead();
+                printf("%u,", result);
+                printf("%u\n", result & 0x0001);
+            }
         }
     }
     return 0;   /* never reached */

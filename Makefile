@@ -27,7 +27,7 @@ CFLAGS = -I util/
 # Tune the lines below only if you know what you are doing:
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) $(CFLAGS) 
+COMPILE = avr-gcc -Wall -std=c99 -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) $(CFLAGS) 
 
 # symbolic targets:
 all:	main.hex

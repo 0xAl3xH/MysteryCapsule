@@ -8,11 +8,16 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 
 void setup(void);
 void setupUART(uint32_t baud);
 void sendByte(uint8_t byte);
+void sendBytePrintf(uint8_t byte, FILE *stream);
 uint8_t recieveByte();
+
+//Set up stream to use to redirect stdout characters  to UART send function 
+static FILE uartSTDOUT = FDEV_SETUP_STREAM(sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
 
 /**
  * Setup function which is run once on startup 
@@ -20,6 +25,8 @@ uint8_t recieveByte();
 void setup(void) {
     DDRB = 0xDF; //Set up PB0-PB6 as output for LEDs 
     setupUART(BAUD_RATE);
+    //Bind stdout to print via UART
+    stdout = &uartSTDOUT;
 }
 
 /**
@@ -39,6 +46,15 @@ void setupUART(uint32_t baud) {
     UCSR0B = (1<<RXEN0)|(1<<TXEN0);
     //Set 8 data bits, 1 stop bit, no parity
     UCSR0C = (3<<UCSZ00);
+}
+
+/**
+ * Used to print streams to UART
+ */
+void sendBytePrintf(uint8_t byte, FILE *stream) {
+    if (byte == '\n')
+        sendByte('\r');
+    sendByte(byte);
 }
 
 void sendByte(uint8_t byte) {

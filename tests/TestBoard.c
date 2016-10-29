@@ -390,6 +390,28 @@ void test_board_no_moves(void) {
     TEST_ASSERT_TRUE(Board_gameOver(&board) == TRUE);
 }
 
+void test_board_put_random(void) {
+    uint16_t startingGrid[4][4] = {
+        {2,0,0,8},
+        {2,2,2,2},
+        {0,0,0,0},
+        {2,0,2,0}
+    };
+    Board board = Board_newBoard(startingGrid);
+    uint16_t expectedGrid[4][4] = {
+        {2,2,0,8},
+        {2,2,2,2},
+        {0,0,2,0},
+        {2,4,2,0}
+    }; 
+    Board expectedBoard = Board_newBoard(expectedGrid);
+    Board_putRandom(&board, 8, TRUE);
+    Board_putRandom(&board, 12, FALSE);
+    Board_putRandom(&board, 57, TRUE);
+    printBoard(&board);
+    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard)==TRUE);
+}
+
 void printBoard(Board * board) {
     for (int row = 0; row < 4; row++){
         printf("{");
@@ -432,5 +454,8 @@ RUN_TEST(test_board_shift_combo_twos);
 RUN_TEST(test_board_shift_combo_different);
 
 RUN_TEST(test_board_no_moves);
+
+RUN_TEST(test_board_put_random);
+
 return UNITY_END();
 }

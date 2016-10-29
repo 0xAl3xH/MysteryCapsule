@@ -29,19 +29,40 @@ Boolean Board_equal(Board * board1, Board * board2) {
     return TRUE;
 }
 
-void decrement (int8_t *counter) {
+void Board_putRandom(Board *board, uint16_t randomNum, Boolean two) {
+    uint8_t numEmpty = 0;
+    uint8_t emptySpots[16][2];
+    for (uint8_t i = 0; i < 4; i++)
+        for (uint8_t j = 0; j < 4; j++) {
+            if(!(board -> grid[i][j].value)) {
+                emptySpots[numEmpty][0] = i;
+                emptySpots[numEmpty][1] = j;
+                numEmpty ++;
+            }
+        }
+    uint8_t index = (uint8_t) (randomNum % numEmpty);
+    uint8_t row = emptySpots[index][0];
+    uint8_t col = emptySpots[index][1];
+    if (two == TRUE) {
+        board -> grid[row][col].value = 2;
+    } else {
+        board -> grid[row][col].value = 4;
+    }
+}
+
+static void decrement (int8_t *counter) {
     (*counter)--;
 }
 
-void increment (int8_t *counter) {
+static void increment (int8_t *counter) {
     (*counter)++;
 }
 
-uint8_t greaterThan (int8_t *counter) {
+static uint8_t greaterThan (int8_t *counter) {
     return (*counter) >= 0; 
 }
 
-uint8_t lessThan (int8_t *counter) {
+static uint8_t lessThan (int8_t *counter) {
     return (*counter) < 4;
 }
 

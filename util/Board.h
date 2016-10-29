@@ -5,6 +5,8 @@
  * The grid is represented by a 2D array that contains Blocks
  * Additionally, board should implement functions that allow for directional shifts
  * and a funciton that checks the game over condition.
+ * Users should not interact with the grid member of Board directly and should instead 
+ * rely on the public functions as defined in Board.h
  */
 
 #include <stdint.h>
@@ -47,8 +49,14 @@ Board Board_newBoard(uint16_t grid[4][4]);
 Boolean Board_equal(Board * board1, Board * board2);
 
 /*
+ * Puts a tile, either 2 or 4 as specified by the parameter, into 
+ * a random, empty spot
+ */ 
+void Board_putRandom(Board * board, uint16_t randomNum, Boolean two);
+
+/*
  * Takes a direction dir and shifts all the blocks in the board according to 
- * 2048 rules:
+ * 2048 rules, mutating gameBoard:
  *   - Blocks of equal values are merged, but no greedy merging (merged once)
  *   - Merging starts from the same direction as shift (eg. left shift, start 
  *     merging from the left)

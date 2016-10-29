@@ -412,6 +412,25 @@ void test_board_put_random(void) {
     TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard)==TRUE);
 }
 
+void test_board_gameWon(void) {
+    uint16_t wonGrid[4][4] = {
+        {2,0,0,8},
+        {2,2,2,2},
+        {2048,0,0,0},
+        {2,0,2,0}
+    };
+    Board boardWon = Board_newBoard(wonGrid);
+    uint16_t notWonGrid[4][4] = {
+        {2,2,0,8},
+        {2,2,2,2},
+        {0,0,2,0},
+        {2,4,2,0}
+    }; 
+    Board boardNotWon = Board_newBoard(notWonGrid);
+    TEST_ASSERT_TRUE(Board_gameWon(&boardWon) == TRUE);
+    TEST_ASSERT_TRUE(Board_gameWon(&boardNotWon) == FALSE);
+};
+
 void printBoard(Board * board) {
     for (int row = 0; row < 4; row++){
         printf("{");
@@ -456,6 +475,8 @@ RUN_TEST(test_board_shift_combo_different);
 RUN_TEST(test_board_no_moves);
 
 RUN_TEST(test_board_put_random);
+
+RUN_TEST(test_board_gameWon);
 
 return UNITY_END();
 }

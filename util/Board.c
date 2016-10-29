@@ -29,7 +29,7 @@ Boolean Board_equal(Board * board1, Board * board2) {
     return TRUE;
 }
 
-void Board_putRandom(Board *board, uint16_t randomNum, Boolean two) {
+void Board_putRandom(Board *board, uint32_t randomNum, Boolean two) {
     uint8_t numEmpty = 0;
     uint8_t emptySpots[16][2];
     for (uint8_t i = 0; i < 4; i++)
@@ -172,11 +172,21 @@ Boolean Board_shift(Direction dir, Board *gameBoard) {
 }
 
 Boolean Board_gameOver(Board *board) {
+    //Make a copy so we don't modify the original board 
     Board gameBoard = *board;
     Direction allDirs[4] = {UP,DOWN,LEFT,RIGHT};
     for (int i = 0; i < 4; i++) {
         if(!Board_shift(allDirs[i], &gameBoard))
             return TRUE; 
     }
+    return FALSE;
+}
+
+Boolean Board_gameWon(Board *board){
+    for (int row = 0; row < 4; row++)
+        for (int col = 0; col < 4; col++) {
+            if (board -> grid[row][col].value >= 2048)
+                return TRUE;
+        } 
     return FALSE;
 }

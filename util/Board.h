@@ -50,9 +50,10 @@ Boolean Board_equal(Board * board1, Board * board2);
 
 /*
  * Puts a tile, either 2 or 4 as specified by the parameter, into 
- * a random, empty spot
+ * a random, empty spot. Note that the user is responsible for 
+ * ensuring distribution of twos and fours abide by 2048 rules 
  */ 
-void Board_putRandom(Board * board, uint16_t randomNum, Boolean two);
+void Board_putRandom(Board * board, uint32_t randomNum, Boolean two);
 
 /*
  * Takes a direction dir and shifts all the blocks in the board according to 
@@ -67,12 +68,17 @@ void Board_putRandom(Board * board, uint16_t randomNum, Boolean two);
 Boolean Board_shift(Direction dir, Board * gameBoard); 
 
 /*
- * Checks to see if the game is over accodring to 2048 rules:
+ * Checks to see if the game is over according to 2048 rules:
  *   - A shift in any direction will not result in any merges
  *   - A shift in any direction will not result in any blocks moving to new 
  *     positions
  * The function returns a boolean value of TRUE if the game is indeed over 
  */
 Boolean Board_gameOver(Board *board); 
+
+/*
+ * Checks to see if the player has won the game by getting a 2048 block
+ */
+Boolean Board_gameWon(Board *board);
 
 #endif

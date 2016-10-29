@@ -20,7 +20,7 @@
 DEVICE     = atmega328p
 CLOCK      = 8000000
 PROGRAMMER = -c stk500v1 -b 19200 -P /dev/tty.usbmodem1411
-OBJECTS    = main.o 
+OBJECTS    = main.o util/Board.o 
 FUSES      = -U hfuse:w:0xd9:m -U lfuse:w:0xe2:m -U	efuse:w:0x07:m #default fuses for ATMega328P without clock division 
 CFLAGS = -I util/
 

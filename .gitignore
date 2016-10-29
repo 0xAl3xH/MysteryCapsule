@@ -4,3 +4,5 @@ main.hex
 *.o
 *.swp
 tests/scratchpad
+2048_grid
+*.hex

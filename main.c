@@ -9,6 +9,8 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include "util/Board.h"
 
 void setup(void);
 void setupADC(void);
@@ -17,6 +19,7 @@ void sendByte(uint8_t byte);
 void sendBytePrintf(uint8_t byte, FILE *stream);
 uint8_t recieveByte(void);
 uint16_t adcRead(void);
+uint16_t getSeed(void);
 
 //Set up stream to use to redirect stdout characters  to UART send function 
 static FILE uartSTDOUT = FDEV_SETUP_STREAM(sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
@@ -30,6 +33,7 @@ void setup(void) {
     //Bind stdout to print via UART
     stdout = &uartSTDOUT;
     setupADC();
+    srand(getSeed());
 }
 
 /**
@@ -92,19 +96,30 @@ uint16_t adcRead(void) {
     return retVal;
 }
 
+/**
+ * Get a random integer 
+ */
+uint16_t getSeed(void) {
+    uint16_t retVal = 0;
+    for (int i = 0; i < 16; i++) {
+        retVal |= (adcRead() & 1) << i;
+    }
+    return retVal;
+}
+
+/**
+ * 2048 Game 
+ */
+void play2048(void) {
+     
+}
+
 int main(void)
 {
     setup();
     uint8_t recieved_byte;
     for(;;){
-        recieved_byte = recieveByte();
-        if (recieved_byte == 13) {
-            for (int i = 0; i < 1000; i++) {
-                uint16_t result = adcRead();
-                printf("%u,", result);
-                printf("%u\n", result & 0x0001);
-            }
-        }
+
     }
     return 0;   /* never reached */
 }

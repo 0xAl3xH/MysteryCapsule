@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "util/Board.h"
@@ -44,7 +45,7 @@ void setup(void) {
  * Sets up ADC 
  */
 void setupADC(void) {
-    ADCSRA |= (3 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //set prescaler to 64
+    ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //set prescaler to 64
     ADCSRA |= (1 << ADEN); //Enable ADC 
 }
 
@@ -121,27 +122,28 @@ Boolean spawnTwo(void) {
     return !(prob == 9);
 } 
 
+const char padding[] PROGMEM = "        ";
 /**
  * Helper method to print the board to UART
  */
 void printBoard(Board *board) {
+    //The following code will make heavy use of the printf_P function to save RAM space
     uint16_t boardVal;
-
     //Get cursor back to original position
-    printf("%c[9A",27);
+    printf_P(PSTR("%c[9A"),27);
 
-    printf("#-------------------#\n");
+    printf_P(PSTR("%S#-------------------#\n"),padding);
     for (uint8_t row = 0; row < 4; row++) {
-        printf("|");
+        printf_P(PSTR("%S|"),padding);
         for (uint8_t col = 0; col < 4; col++) {
             boardVal = board -> grid[row][col].value;
             if (boardVal)
-                printf("%4u|",board -> grid[row][col].value); 
+                printf_P(PSTR("%4u|"),board -> grid[row][col].value); 
             else
-                printf("    |");
+                printf_P(PSTR("    |"));
         }
-        printf("\n");
-        printf("#-------------------#\n");
+        printf_P(PSTR("\n"));
+        printf_P(PSTR("%S#-------------------#\n"),padding);
     }
 }
 
@@ -156,6 +158,7 @@ void play2048(void) {
      uint8_t recievedByte;
      Direction dir;
      printBoard(&board);
+
      while (!Board_gameWon(&board)) {
          recievedByte = recieveByte();
          if (recievedByte == 'j') 

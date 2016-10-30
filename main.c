@@ -38,7 +38,7 @@ void setup(void) {
     stdout = &uartSTDOUT;
     setupADC();
     srandom(getSeed());
-    _delay_ms(3000);
+    //_delay_ms(3000);
 }
 
 /**
@@ -147,6 +147,8 @@ void printBoard(Board *board) {
     }
 }
 
+const char logo2048[] PROGMEM = "   ___       __   __ __       __\n /\'___`\\   /\'__`\\/\\ \\\\ \\    /\'_ `\\\n/\\_\\ /\\ \\ /\\ \\/\\ \\ \\ \\\\ \\  /\\ \\L\\ \\\n\\/_/// /__\\ \\ \\ \\ \\ \\ \\\\ \\_\\/_> _ <_\n   // /_\\ \\\\ \\ \\_\\ \\ \\__ ,__\\/\\ \\L\\ \\\n  /\\______/ \\ \\____/\\/_/\\_\\_/\\ \\____/\n  \\/_____/   \\/___/    \\/_/   \\/___/\n\n";
+
 /**
  * 2048 Game 
  */
@@ -157,6 +159,9 @@ void play2048(void) {
      Board_putRandom(&board, random(),spawnTwo());
      uint8_t recievedByte;
      Direction dir;
+     printf_P(PSTR("%S"),logo2048);
+     //Move cursor down 9 times to offset for printBoard
+     printf_P(PSTR("\n\n\n\n\n\n\n\n\n"));
      printBoard(&board);
 
      while (!Board_gameWon(&board)) {

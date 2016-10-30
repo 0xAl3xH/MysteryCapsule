@@ -16,7 +16,7 @@
 
 void setup(void);
 void setupADC(void);
-void sendBytePrintf(uint8_t byte, FILE *stream);
+void UART_sendBytePrintf(uint8_t byte, FILE *stream);
 uint16_t adcRead(void);
 uint16_t getSeed(void);
 Boolean spawnTwo(void);
@@ -28,9 +28,9 @@ void play2048(void);
  */
 void setup(void) {
     DDRB = 0xDF; //Set up PB0-PB6 as output for LEDs 
-    setupUART(BAUD_RATE);
+    UART_setup(BAUD_RATE);
     //Set up stream to use to redirect stdout characters  to UART send function 
-    static FILE uartSTDOUT = FDEV_SETUP_STREAM(sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
+    static FILE uartSTDOUT = FDEV_SETUP_STREAM(UART_sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
     //Bind stdout to print via UART
     stdout = &uartSTDOUT;
     setupADC();
@@ -117,7 +117,7 @@ void play2048(void) {
      printBoard(&board);
 
      while (!Board_gameWon(&board)) {
-         recievedByte = recieveByte();
+         recievedByte = UART_recieveByte();
          if (recievedByte == 'j') 
              dir = LEFT;
          else if (recievedByte == 'l')

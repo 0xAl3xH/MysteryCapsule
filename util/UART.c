@@ -1,6 +1,6 @@
 #include <UART.h>
 
-void setupUART(uint32_t baud) {
+void UART_setup(uint32_t baud) {
     //Set the ubrr value to generate baud rate 
     uint16_t ubrr = (F_CPU)/((uint32_t)16 * baud) - 1;         
     UBRR0H = ubrr >> 8;                                        
@@ -12,7 +12,7 @@ void setupUART(uint32_t baud) {
     UCSR0C = (3<<UCSZ00);                                      
 }  
 
-void sendByte(uint8_t byte) {
+void UART_sendByte(uint8_t byte) {
     // wait until port is ready to be written to
     while( ( UCSR0A & ( 1 << UDRE0 ) ) == 0 ){}
 
@@ -20,7 +20,7 @@ void sendByte(uint8_t byte) {
     UDR0 = byte;
 }
 
-uint8_t recieveByte(void) {
+uint8_t UART_recieveByte(void) {
     // wait until a byte is in the buffer  
     while( ( UCSR0A & ( 1 << RXC0 ) ) == 0 ){}
 
@@ -31,8 +31,8 @@ uint8_t recieveByte(void) {
 /**
  *  * Used to print streams to UART
  *   */
-void sendBytePrintf(uint8_t byte, FILE *stream) {
+void UART_sendBytePrintf(uint8_t byte, FILE *stream) {
         if (byte == '\n')
-                    sendByte('\r');
-            sendByte(byte);
+                    UART_sendByte('\r');
+            UART_sendByte(byte);
 }

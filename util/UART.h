@@ -10,13 +10,13 @@
 /*
  * Given the baud rate, set up the UART. 
  */
-void setupUART(uint32_t baud);
+void UART_setup(uint32_t baud);
 
 /*
  * Sends a character over the UART module
  * takes the byte to be sent as input.
  */
-void sendByte(uint8_t byte);
+void UART_sendByte(uint8_t byte);
 
 /*
  * Recieves a character over the UART module
@@ -25,11 +25,11 @@ void sendByte(uint8_t byte);
  * Returns the byte that has been recieved
  * in the UART module.
  */
-uint8_t recieveByte(void); 
+uint8_t UART_recieveByte(void); 
 
 /*
  * Sends a byte from a file stream to the 
  * UART module 
  */
-void sendBytePrintf(uint8_t byte, FILE *stream); 
+void UART_sendBytePrintf(uint8_t byte, FILE *stream); 
 #endif

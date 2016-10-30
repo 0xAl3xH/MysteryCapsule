@@ -27,3 +27,12 @@ uint8_t recieveByte(void) {
     // grab the byte from the serial port
     return UDR0;
 }
+
+/**
+ *  * Used to print streams to UART
+ *   */
+void sendBytePrintf(uint8_t byte, FILE *stream) {
+        if (byte == '\n')
+                    sendByte('\r');
+            sendByte(byte);
+}

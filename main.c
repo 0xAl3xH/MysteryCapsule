@@ -23,15 +23,14 @@ Boolean spawnTwo(void);
 void printBoard(Board *board);
 void play2048(void);
 
-//Set up stream to use to redirect stdout characters  to UART send function 
-static FILE uartSTDOUT = FDEV_SETUP_STREAM(sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
-
 /**
  * Setup function which is run once on startup 
  */
 void setup(void) {
     DDRB = 0xDF; //Set up PB0-PB6 as output for LEDs 
     setupUART(BAUD_RATE);
+    //Set up stream to use to redirect stdout characters  to UART send function 
+    static FILE uartSTDOUT = FDEV_SETUP_STREAM(sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
     //Bind stdout to print via UART
     stdout = &uartSTDOUT;
     setupADC();
@@ -44,15 +43,6 @@ void setup(void) {
 void setupADC(void) {
     ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //set prescaler to 64
     ADCSRA |= (1 << ADEN); //Enable ADC 
-}
-
-/**
- * Used to print streams to UART
- */
-void sendBytePrintf(uint8_t byte, FILE *stream) {
-    if (byte == '\n')
-        sendByte('\r');
-    sendByte(byte);
 }
 
 uint16_t adcRead(void) {

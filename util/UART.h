@@ -1,6 +1,7 @@
 #ifndef UART_H
 #define UART_H
 #include <avr/io.h>
+#include <stdio.h>
 /*
  * Implementation of APIs that allow users to interact with 
  * the UART subsystem on an ATMega328P.
@@ -25,4 +26,10 @@ void sendByte(uint8_t byte);
  * in the UART module.
  */
 uint8_t recieveByte(void); 
+
+/*
+ * Sends a byte from a file stream to the 
+ * UART module 
+ */
+void sendBytePrintf(uint8_t byte, FILE *stream); 
 #endif

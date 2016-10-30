@@ -13,11 +13,10 @@
 #include <stdlib.h>
 #include "util/Board.h"
 #include "util/UART.h"
+#include "util/ADC.h"
 
 void setup(void);
-void setupADC(void);
 void UART_sendBytePrintf(uint8_t byte, FILE *stream);
-uint16_t adcRead(void);
 uint16_t getSeed(void);
 Boolean spawnTwo(void);
 void printBoard(Board *board);
@@ -33,24 +32,8 @@ void setup(void) {
     static FILE uartSTDOUT = FDEV_SETUP_STREAM(UART_sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
     //Bind stdout to print via UART
     stdout = &uartSTDOUT;
-    setupADC();
+    ADC_setup();
     srandom(getSeed());
-}
-
-/**
- * Sets up ADC 
- */
-void setupADC(void) {
-    ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0); //set prescaler to 64
-    ADCSRA |= (1 << ADEN); //Enable ADC 
-}
-
-uint16_t adcRead(void) {
-    ADCSRA |= (1 << ADSC);  //Start a new conversion;
-    while (ADCSRA & (1<<ADSC)){} //Wait until ADC conversion complete
-    uint16_t retVal = ADCL; //Record the results
-    retVal |= ADCH << 8;
-    return retVal;
 }
 
 /**
@@ -59,7 +42,7 @@ uint16_t adcRead(void) {
 uint16_t getSeed(void) {
     uint16_t retVal = 0;
     for (int i = 0; i < 16; i++) {
-        retVal |= (adcRead() & 1) << i;
+        retVal |= (ADC_read() & 1) << i;
     }
     return retVal;
 }

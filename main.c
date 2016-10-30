@@ -12,13 +12,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "util/Board.h"
+#include "util/UART.h"
 
 void setup(void);
 void setupADC(void);
-void setupUART(uint32_t baud);
-void sendByte(uint8_t byte);
 void sendBytePrintf(uint8_t byte, FILE *stream);
-uint8_t recieveByte(void);
 uint16_t adcRead(void);
 uint16_t getSeed(void);
 Boolean spawnTwo(void);
@@ -38,7 +36,6 @@ void setup(void) {
     stdout = &uartSTDOUT;
     setupADC();
     srandom(getSeed());
-    //_delay_ms(3000);
 }
 
 /**
@@ -50,47 +47,12 @@ void setupADC(void) {
 }
 
 /**
- * Sets up hardware UART given baud rate
- */
-void setupUART(uint32_t baud) {
-    //Set the ubrr value to generate baud rate 
-    uint16_t ubrr = (F_CPU)/((uint32_t)16 * baud) - 1; 
-    //uint16_t ubrr = 51;
-    UBRR0H = ubrr >> 8;
-    UBRR0L = ubrr;
-        
-    //UBRR0H = 0;
-    //UBRR0L = 51;    
-
-    //Enable receiver and transmitter
-    UCSR0B = (1<<RXEN0)|(1<<TXEN0);
-    //Set 8 data bits, 1 stop bit, no parity
-    UCSR0C = (3<<UCSZ00);
-}
-
-/**
  * Used to print streams to UART
  */
 void sendBytePrintf(uint8_t byte, FILE *stream) {
     if (byte == '\n')
         sendByte('\r');
     sendByte(byte);
-}
-
-void sendByte(uint8_t byte) {
-    // wait until port is ready to be written to
-    while( ( UCSR0A & ( 1 << UDRE0 ) ) == 0 ){}
-
-    // write the byte to the serial port
-    UDR0 = byte;
-}
-
-uint8_t recieveByte(void) {
-    // wait until a byte is in the buffer  
-    while( ( UCSR0A & ( 1 << RXC0 ) ) == 0 ){}
-
-    // grab the byte from the serial port
-    return UDR0;
 }
 
 uint16_t adcRead(void) {

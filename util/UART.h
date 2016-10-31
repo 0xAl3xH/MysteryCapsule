@@ -31,5 +31,10 @@ uint8_t UART_recieveByte(void);
  * Sends a byte from a file stream to the 
  * UART module 
  */
-void UART_sendBytePrintf(uint8_t byte, FILE *stream); 
+void UART_sendByteSTD(uint8_t byte, FILE *stream); 
+
+/**
+ * Recieves a byte from stdin via the UART module
+ */
+uint8_t UART_recieveByteSTD(FILE *stream); 
 #endif

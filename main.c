@@ -16,8 +16,8 @@
 #include "util/ADC.h"
 
 void setup(void);
-void UART_sendBytePrintf(uint8_t byte, FILE *stream);
 uint16_t getSeed(void);
+void welcomeMessage(void);
 Boolean spawnTwo(void);
 void printBoard(Board *board);
 void play2048(void);
@@ -26,12 +26,16 @@ void play2048(void);
  * Setup function which is run once on startup 
  */
 void setup(void) {
-    DDRB = 0xDF; //Set up PB0-PB6 as output for LEDs 
+    DDRB = 0xDF; // Set up PB0-PB6 as output for LEDs 
     UART_setup(BAUD_RATE);
-    //Set up stream to use to redirect stdout characters  to UART send function 
-    static FILE uartSTDOUT = FDEV_SETUP_STREAM(UART_sendBytePrintf,NULL,_FDEV_SETUP_WRITE);
-    //Bind stdout to print via UART
-    stdout = &uartSTDOUT;
+
+    // Set up stream to use to redirect stdout and stdin to UART 
+    static FILE uartSTD = FDEV_SETUP_STREAM(UART_sendByteSTD,UART_recieveByteSTD,_FDEV_SETUP_RW);
+
+    // Bind stdout and stdin 
+    stdout = &uartSTD;
+    stdin = &uartSTD;
+
     ADC_setup();
     srandom(getSeed());
 }
@@ -47,6 +51,40 @@ uint16_t getSeed(void) {
     return retVal;
 }
 
+void getInput (char *str, size_t size) {
+    uint32_t index = 0;
+    uint8_t recievedByte = UART_recieveByte();
+    while (recievedByte != 13) {
+        if ((recievedByte != 127) && (recievedByte != 8) && (index <= size - 2)) {
+            if (recievedByte >= 32 && recievedByte <= 126) {
+                UART_sendByte(recievedByte); 
+                str[index] = recievedByte;
+                index ++;
+            }
+        } else if ((recievedByte == 127 || recievedByte == 8) && (index >= 1)) {
+            printf_P(PSTR("%c[1D"),27);
+            printf_P(PSTR("%c[K"),27);
+            index--;
+        } else {
+            UART_sendByte(7);
+        }
+        recievedByte = UART_recieveByte();
+    }
+    printf_P(PSTR("\n"));
+    str[index] = '\0'; 
+}
+
+/**
+ * Initiates the welcome message sequence
+ */
+void welcomeMessage(void) {
+    char name[7];
+    printf_P(PSTR("Enter your name:"));
+    //fgets(name,sizeof name, stdin);
+    getInput(name, sizeof name);
+    printf_P(PSTR("Your name is: %s\n"),name);
+}
+
 /**
  * Helper function to determine whether to spawn 2 or 4.
  * Returns True if a 2 should be spawned.
@@ -58,6 +96,7 @@ Boolean spawnTwo(void) {
 } 
 
 const char padding[] PROGMEM = "        ";
+
 /**
  * Helper method to print the board to UART
  */
@@ -122,6 +161,7 @@ int main(void)
 {
     setup();
     for(;;){
+        welcomeMessage();
         play2048();
     }
     return 0;   /* never reached */

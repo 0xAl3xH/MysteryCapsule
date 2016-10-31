@@ -28,11 +28,14 @@ uint8_t UART_recieveByte(void) {
     return UDR0;
 }
 
-/**
- *  * Used to print streams to UART
- *   */
-void UART_sendBytePrintf(uint8_t byte, FILE *stream) {
+void UART_sendByteSTD(uint8_t byte, FILE *stream) {
         if (byte == '\n')
                     UART_sendByte('\r');
             UART_sendByte(byte);
+}
+
+uint8_t UART_recieveByteSTD(FILE *stream) {
+    uint8_t recievedChar = UART_recieveByte();
+    UART_sendByte(recievedChar);
+    return recievedChar;
 }

@@ -6,8 +6,8 @@
 #define BAUD_RATE 9600
 
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,12 +15,49 @@
 #include "util/UART.h"
 #include "util/ADC.h"
 
+void setupTimer1(void);
 void setup(void);
 uint16_t getSeed(void);
 void welcomeMessage(void);
 Boolean spawnTwo(void);
 void printBoard(Board *board);
 void play2048(void);
+
+
+const uint8_t secretMessage[][2] = {{4,2},{2,1},{6,2},{6,2},{2,1},
+                              {4,3},{7,4},
+                              {2,1},
+                              {2,2},{8,2},{8,1},{8,1},{3,2},{7,3},{3,3},{5,3},{9,3}};
+volatile uint8_t flashCount;
+uint8_t secretDigit;
+/**
+ * Interrupt handler for LED puzzle
+ */
+ISR (TIMER1_COMPA_vect)
+{
+    PORTB ^= 1;
+}
+
+/**
+ * Setup function for 16 bit timer1 running at 8 Mhz
+ * for 1 second triggers
+ */
+void setupTimer1(void) {
+    OCR1A = 0x1E83;
+
+    // Mode 4, CTC on OCR1A
+    TCCR1B |= (1 << WGM12);
+
+    //Set interrupt on compare match
+    TIMSK1 |= (1 << OCIE1A);
+
+    // set prescaler to 1024 and start the timer
+    TCCR1B |= (1 << CS12) | (1 << CS10);
+
+    // enable interrupts
+    sei();
+
+}
 
 /**
  * Setup function which is run once on startup 
@@ -38,6 +75,7 @@ void setup(void) {
 
     ADC_setup();
     srandom(getSeed());
+    setupTimer1();
 }
 
 /**
@@ -51,38 +89,51 @@ uint16_t getSeed(void) {
     return retVal;
 }
 
+/**
+ * Blocking method that gets user input, suppoting backspace deletion and 
+ * visual user feedback. Takes a pointer to a string variable to be 
+ * modified to the user input and the variable's length.
+ */
 void getInput (char *str, size_t size) {
     uint32_t index = 0;
     uint8_t recievedByte = UART_recieveByte();
-    while (recievedByte != 13) {
-        if ((recievedByte != 127) && (recievedByte != 8) && (index <= size - 2)) {
+    while (recievedByte != '\r' && recievedByte !='\n') {
+        // check that the character isn't backspace or delete on mac 
+        // and that there is enough space in the string buffer
+        if ((recievedByte != 127) && (recievedByte != '\b') && (index <= size - 2)) {
+            // check that character can be printed on screen
             if (recievedByte >= 32 && recievedByte <= 126) {
                 UART_sendByte(recievedByte); 
                 str[index] = recievedByte;
                 index ++;
             }
-        } else if ((recievedByte == 127 || recievedByte == 8) && (index >= 1)) {
+        } else if ((recievedByte == 127 || recievedByte == '\b') && (index >= 1)) {
+            // handle backspace or delete on mac by moving cursor backward and deleting character 
             printf_P(PSTR("%c[1D"),27);
             printf_P(PSTR("%c[K"),27);
             index--;
         } else {
+            // ring the bell
             UART_sendByte(7);
         }
         recievedByte = UART_recieveByte();
     }
     printf_P(PSTR("\n"));
+    // put a null character at the end of the string
     str[index] = '\0'; 
 }
+
+const char cakeArt[] PROGMEM = "                        #,\n                        ###\n                       ## ##\n                      ##  ##\n                       ####\n                         :\n                        #####\n                       ######\n                       ##  ##\n                       ##  ##\n                       ##  ##\n                       ##  ##########\n                       ##  #############\n                  #######  ###############\n              #############################\n        .###################################\n       #####################################;\n       ##                                 ##.\n       ##                                 ##\n       #####################################\n       ##                                 ##\n       ##      Tosci\'s icecream cake      ##\n       ##       For a special Hanna       ###\n    #####                                 #####\n   ### ##################################### ###\n  ###  ##                                 ##  ###\n  ##   ## ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ##   ##\n   ##  #####################################  ##\n    ##                                       ##\n     ####                                 ####\n       ######                         ######\n          ###############################\n";
 
 /**
  * Initiates the welcome message sequence
  */
 void welcomeMessage(void) {
     char name[7];
-    printf_P(PSTR("Enter your name:"));
-    //fgets(name,sizeof name, stdin);
+    printf_P(PSTR("%S\n"),cakeArt);
+    printf_P(PSTR("Hello Hanna, happy belated birthday!"));
     getInput(name, sizeof name);
-    printf_P(PSTR("Your name is: %s\n"),name);
+    //printf_P(PSTR("Your name is: %s\n"),name);
 }
 
 /**
@@ -138,7 +189,7 @@ void play2048(void) {
      printf_P(PSTR("\n\n\n\n\n\n\n\n\n"));
      printBoard(&board);
 
-     while (!Board_gameWon(&board)) {
+     while (!Board_gameWon(&board) && !Board_gameOver(&board)) {
          recievedByte = UART_recieveByte();
          if (recievedByte == 'j') 
              dir = LEFT;
@@ -154,6 +205,12 @@ void play2048(void) {
             Board_putRandom(&board, random(), spawnTwo());
             printBoard(&board);
          }
+     }
+     if (Board_gameOver(&board)) {
+        printf("\nGame Lost\n"); 
+     } 
+     if (Board_gameWon(&board)) {
+        printf("\nGame Won\n");
      }
 }
 

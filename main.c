@@ -7,8 +7,9 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
+#include <util/atomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "util/Board.h"
@@ -22,20 +23,28 @@ void welcomeMessage(void);
 Boolean spawnTwo(void);
 void printBoard(Board *board);
 void play2048(void);
+void ledPuzzle(void);
 
 
 const uint8_t secretMessage[][2] = {{4,2},{2,1},{6,2},{6,2},{2,1},
                               {4,3},{7,4},
                               {2,1},
                               {2,2},{8,2},{8,1},{8,1},{3,2},{7,3},{3,3},{5,3},{9,3}};
-volatile uint8_t flashCount;
+volatile uint8_t flashCount = 0;
 uint8_t secretDigit;
 /**
  * Interrupt handler for LED puzzle
  */
 ISR (TIMER1_COMPA_vect)
 {
-    PORTB ^= 1;
+    if (flashCount) {
+        //Toggle LEDs
+        if (!(flashCount % 2))
+            PORTC = secretDigit;
+        else
+            PORTC = 0;
+        flashCount --;
+    }
 }
 
 /**
@@ -43,7 +52,7 @@ ISR (TIMER1_COMPA_vect)
  * for 1 second triggers
  */
 void setupTimer1(void) {
-    OCR1A = 0x1E83;
+    OCR1A = 0x7A0;
 
     // Mode 4, CTC on OCR1A
     TCCR1B |= (1 << WGM12);
@@ -64,6 +73,7 @@ void setupTimer1(void) {
  */
 void setup(void) {
     DDRB = 0xDF; // Set up PB0-PB6 as output for LEDs 
+    DDRC = 0x0F; // Set up PC0-PC3 as output
     UART_setup(BAUD_RATE);
 
     // Set up stream to use to redirect stdout and stdin to UART 
@@ -75,7 +85,6 @@ void setup(void) {
 
     ADC_setup();
     srandom(getSeed());
-    setupTimer1();
 }
 
 /**
@@ -214,12 +223,48 @@ void play2048(void) {
      }
 }
 
+/**
+ * Routine for LED puzzle
+ */
+void ledPuzzle(void){
+    uint8_t index = 0;
+    uint8_t recievedByte;
+    printf_P(PSTR("Password: *****************"));
+    printf_P(PSTR("%c[17D"),27);
+    flashCount = 2 * secretMessage[index][1];
+    secretDigit = secretMessage[index][0];
+    setupTimer1();
+    while(1) {
+        recievedByte = UART_recieveByte();
+        // Move left 
+        if ((recievedByte == 'j') && (index > 0)) {
+            index --;
+            // Move cursor back
+            printf_P(PSTR("%c[D"),27);
+        }
+        // Move right
+        else if ((recievedByte == 'l') && (index < 16)) {
+            index ++;
+            // Move cursor forward
+            printf_P(PSTR("%c[C"),27);
+        } else {
+            continue;
+        }
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+            //Update the LED flash interrupt variables
+            flashCount = 2 * secretMessage[index][1] + 1;  //A flash will be on & off, hence the 2x multiplier, +1 is to give a short pause before the lights start flashing
+            secretDigit = secretMessage[index][0];
+        }
+    }
+}
+
 int main(void)
 {
     setup();
     for(;;){
         welcomeMessage();
-        play2048();
+        //play2048();
+        ledPuzzle();
     }
     return 0;   /* never reached */
 }

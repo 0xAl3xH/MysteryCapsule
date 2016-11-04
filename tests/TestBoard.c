@@ -24,7 +24,7 @@ void test_board_equal_blank(void) {
     uint16_t boardGrid[4][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
     Board board1 = Board_newBoard(boardGrid);
     Board board2 = Board_newBlankBoard();
-    TEST_ASSERT_TRUE(Board_equal(&board1, &board2) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board1, &board2));
 }
 
 void test_board_update_value(void) {

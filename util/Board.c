@@ -172,11 +172,12 @@ Boolean Board_shift(Direction dir, Board *gameBoard) {
 }
 
 Boolean Board_gameOver(Board *board) {
+    //Make a copy so we don't modify the original board don't need to make 
+    //a copy every iteration of loop because when board is mutated, we
+    //will return from the function 
+    Board gameBoard = *board;
     Direction allDirs[4] = {UP,DOWN,LEFT,RIGHT};
     for (uint8_t i = 0; i < 4; i++) {
-        //Make a copy so we don't modify the original board 
-        Board gameBoard = *board;
-        printf("%d",i);
         if(Board_shift(allDirs[i], &gameBoard))
             return FALSE; 
     }

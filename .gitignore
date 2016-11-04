@@ -6,5 +6,5 @@ main.hex
 tests/scratchpad
 2048_grid
 *.hex
-2048_*
 screenlog.*
+art/

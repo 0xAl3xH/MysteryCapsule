@@ -65,7 +65,7 @@ void test_board_shift_left_twos(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(LEFT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard));
 }
 
 void test_board_shift_left_twos_merge(void) {
@@ -85,7 +85,7 @@ void test_board_shift_left_twos_merge(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(LEFT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_left_different(void) {
@@ -105,7 +105,7 @@ void test_board_shift_left_different(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(LEFT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_right_zeroes(void) {
@@ -134,7 +134,7 @@ void test_board_shift_right_twos(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(RIGHT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard));
 }
 
 void test_board_shift_right_twos_merge(void) {
@@ -154,7 +154,7 @@ void test_board_shift_right_twos_merge(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(RIGHT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_right_different(void) {
@@ -174,7 +174,7 @@ void test_board_shift_right_different(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(RIGHT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_down_zeroes(void) {
@@ -203,7 +203,7 @@ void test_board_shift_down_twos(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(DOWN, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard));
 }
 
 void test_board_shift_down_twos_merge(void) {
@@ -223,7 +223,7 @@ void test_board_shift_down_twos_merge(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(DOWN, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_down_different(void) {
@@ -243,7 +243,7 @@ void test_board_shift_down_different(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(DOWN, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_up_zeroes(void) {
@@ -272,7 +272,7 @@ void test_board_shift_up_twos(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(UP, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard));
 }
 
 void test_board_shift_up_twos_merge(void) {
@@ -292,7 +292,7 @@ void test_board_shift_up_twos_merge(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(UP, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_up_different(void) {
@@ -312,7 +312,7 @@ void test_board_shift_up_different(void) {
     Board expectedBoard = Board_newBoard(expectedGrid);
     Board_shift(UP, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
 }
 
 void test_board_shift_combo_twos(void) {
@@ -335,8 +335,8 @@ void test_board_shift_combo_twos(void) {
     Board_shift(RIGHT, &board);
     Board_shift(RIGHT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
-    TEST_ASSERT_FALSE(Board_gameOver(&board) == FALSE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
+    TEST_ASSERT_FALSE(Board_gameOver(&board));
 }
 
 void test_board_shift_combo_different(void) {
@@ -361,8 +361,8 @@ void test_board_shift_combo_different(void) {
     Board_shift(UP, &board);
     Boolean moved = Board_shift(LEFT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
-    TEST_ASSERT_TRUE(moved == TRUE); 
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
+    TEST_ASSERT_TRUE(moved); 
 }
 
 void test_board_no_moves(void) {
@@ -385,9 +385,20 @@ void test_board_no_moves(void) {
     Board_shift(RIGHT, &board);
     Boolean moved = Board_shift(LEFT, &board);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard) == TRUE);
-    TEST_ASSERT_TRUE(moved == FALSE); 
-    TEST_ASSERT_TRUE(Board_gameOver(&board) == TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board, &expectedBoard));
+    TEST_ASSERT_FALSE(moved); 
+    TEST_ASSERT_TRUE(Board_gameOver(&board));
+}
+
+void test_board_gameOver(void) {
+    uint16_t startingGrid[4][4] = {
+        {0,0,0,0},
+        {0,0,0,0},
+        {2,0,0,0},
+        {2,8,2,0}
+    };
+    Board board = Board_newBoard(startingGrid);
+    TEST_ASSERT_FALSE(Board_gameOver(&board));
 }
 
 void test_board_put_random(void) {
@@ -409,7 +420,7 @@ void test_board_put_random(void) {
     Board_putRandom(&board, 12, FALSE);
     Board_putRandom(&board, 57, TRUE);
     printBoard(&board);
-    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard)==TRUE);
+    TEST_ASSERT_TRUE(Board_equal(&board,&expectedBoard));
 }
 
 void test_board_gameWon(void) {
@@ -427,8 +438,8 @@ void test_board_gameWon(void) {
         {2,4,2,0}
     }; 
     Board boardNotWon = Board_newBoard(notWonGrid);
-    TEST_ASSERT_TRUE(Board_gameWon(&boardWon) == TRUE);
-    TEST_ASSERT_TRUE(Board_gameWon(&boardNotWon) == FALSE);
+    TEST_ASSERT_TRUE(Board_gameWon(&boardWon));
+    TEST_ASSERT_FALSE(Board_gameWon(&boardNotWon));
 };
 
 void printBoard(Board * board) {
@@ -473,6 +484,7 @@ RUN_TEST(test_board_shift_combo_twos);
 RUN_TEST(test_board_shift_combo_different);
 
 RUN_TEST(test_board_no_moves);
+RUN_TEST(test_board_gameOver);
 
 RUN_TEST(test_board_put_random);
 

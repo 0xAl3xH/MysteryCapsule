@@ -67,7 +67,7 @@ static uint8_t lessThan (int8_t *counter) {
 }
 
 Boolean Board_shift(Direction dir, Board *gameBoard) {
-    // Make a copy of the original board
+    // Make a copy of the original board to check against it later
     Board board = * gameBoard;
     
     int8_t row, col;
@@ -172,14 +172,15 @@ Boolean Board_shift(Direction dir, Board *gameBoard) {
 }
 
 Boolean Board_gameOver(Board *board) {
-    //Make a copy so we don't modify the original board 
-    Board gameBoard = *board;
     Direction allDirs[4] = {UP,DOWN,LEFT,RIGHT};
-    for (int i = 0; i < 4; i++) {
-        if(!Board_shift(allDirs[i], &gameBoard))
-            return TRUE; 
+    for (uint8_t i = 0; i < 4; i++) {
+        //Make a copy so we don't modify the original board 
+        Board gameBoard = *board;
+        printf("%d",i);
+        if(Board_shift(allDirs[i], &gameBoard))
+            return FALSE; 
     }
-    return FALSE;
+    return TRUE;
 }
 
 Boolean Board_gameWon(Board *board){

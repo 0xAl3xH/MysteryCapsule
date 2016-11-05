@@ -1,4 +1,5 @@
 main.elf
+text.h
 main.hex
 .main.*
 *.o

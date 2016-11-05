@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 #include <util/atomic.h>
 #include <stdio.h>
@@ -25,6 +26,8 @@ void printBoard(Board *board);
 void play2048(void);
 void ledPuzzle(void);
 
+uint8_t *beat2048EEPA = 0;  //Address of EEPROM variable beat2048
+uint8_t beat2048 = 0; 
 
 const uint8_t secretMessage[][2] = {{4,2},{2,1},{6,2},{6,2},{2,1},
                               {4,3},{7,4},
@@ -40,7 +43,7 @@ ISR (TIMER1_COMPA_vect)
     if (flashCount) {
         //Toggle LEDs
         if (!(flashCount % 2))
-            PORTC = secretDigit;
+            PORTC = secretDigit << 2; //Use PC2 - PC5
         else
             PORTC = 0;
         flashCount --;
@@ -49,7 +52,7 @@ ISR (TIMER1_COMPA_vect)
 
 /**
  * Setup function for 16 bit timer1 running at 8 Mhz
- * for 1 second triggers
+ * for 0.25 second triggers
  */
 void setupTimer1(void) {
     OCR1A = 0x7A0;
@@ -72,8 +75,7 @@ void setupTimer1(void) {
  * Setup function which is run once on startup 
  */
 void setup(void) {
-    DDRB = 0xDF; // Set up PB0-PB6 as output for LEDs 
-    DDRC = 0x0F; // Set up PC0-PC3 as output
+    DDRC = 0x3C; // Set up PC2-PC5 as output for LEDs
     UART_setup(BAUD_RATE);
 
     // Set up stream to use to redirect stdout and stdin to UART 
@@ -85,6 +87,8 @@ void setup(void) {
 
     ADC_setup();
     srandom(getSeed());
+    while (!eeprom_is_ready()) {}
+    beat2048 = eeprom_read_byte(beat2048EEPA);
 }
 
 /**
@@ -232,7 +236,7 @@ void ledPuzzle(void){
     printf_P(PSTR("Password: *****************"));
     printf_P(PSTR("%c[17D"),27);
     flashCount = 2 * secretMessage[index][1];
-    secretDigit = secretMessage[index][0];
+    secretDigit = secretMessage[index][0]; 
     setupTimer1();
     while(1) {
         recievedByte = UART_recieveByte();
@@ -262,8 +266,12 @@ int main(void)
 {
     setup();
     for(;;){
+        printf("%u,%u", beat2048, eeprom_read_byte(beat2048EEPA + 1));
+        if (UART_recieveByte() == 'a')
+            eeprom_write_byte(beat2048EEPA, 69);
+        printf("\n%u", eeprom_read_byte(beat2048EEPA));
         welcomeMessage();
-        //play2048();
+        play2048();
         ledPuzzle();
     }
     return 0;   /* never reached */

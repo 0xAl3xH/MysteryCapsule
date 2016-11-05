@@ -16,7 +16,10 @@
 #include "util/Board.h"
 #include "util/UART.h"
 #include "util/ADC.h"
+#include "text.h"
 
+void EEPROM_Write(uint8_t *addr, uint8_t data);
+uint8_t EEPROM_Read(uint8_t *addr);
 void setupTimer1(void);
 void setup(void);
 uint16_t getSeed(void);
@@ -25,9 +28,13 @@ Boolean spawnTwo(void);
 void printBoard(Board *board);
 void play2048(void);
 void ledPuzzle(void);
+void selectGame(void);
+void birthdayMessage(void); 
 
-uint8_t *beat2048EEPA = 0;  //Address of EEPROM variable beat2048
-uint8_t beat2048 = 0; 
+uint8_t *accessLevelAddr = (uint8_t *) 0;  //Address of EEPROM variable beat2048
+uint8_t accessLevel = 0; 
+uint8_t *messageAuthAddr = (uint8_t *) 1;  //Address of EEPROM variable messageAuth
+uint8_t messageAuth = 0;
 
 const uint8_t secretMessage[][2] = {{4,2},{2,1},{6,2},{6,2},{2,1},
                               {4,3},{7,4},
@@ -35,6 +42,17 @@ const uint8_t secretMessage[][2] = {{4,2},{2,1},{6,2},{6,2},{2,1},
                               {2,2},{8,2},{8,1},{8,1},{3,2},{7,3},{3,3},{5,3},{9,3}};
 volatile uint8_t flashCount = 0;
 uint8_t secretDigit;
+
+void EEPROM_Write(uint8_t *addr, uint8_t data) {
+    while (!eeprom_is_ready()) {}
+    eeprom_write_byte(addr,data);
+}
+
+uint8_t EEPROM_Read(uint8_t *addr) {
+    while (!eeprom_is_ready()) {}
+    return eeprom_read_byte(addr);
+}
+
 /**
  * Interrupt handler for LED puzzle
  */
@@ -87,8 +105,7 @@ void setup(void) {
 
     ADC_setup();
     srandom(getSeed());
-    while (!eeprom_is_ready()) {}
-    beat2048 = eeprom_read_byte(beat2048EEPA);
+    accessLevel = EEPROM_Read(accessLevelAddr);
 }
 
 /**
@@ -101,11 +118,20 @@ uint16_t getSeed(void) {
     }
     return retVal;
 }
+/**
+ * Blocking method that waits for user to input 'enter' key
+ */
+void getEnter(void) {
+    uint8_t recievedByte = UART_recieveByte();
+    while (recievedByte != '\r' && recievedByte !='\n')
+        recievedByte = UART_recieveByte();
+}
 
 /**
  * Blocking method that gets user input, suppoting backspace deletion and 
  * visual user feedback. Takes a pointer to a string variable to be 
  * modified to the user input and the variable's length.
+ * The str argument should always have a length of at least 2.
  */
 void getInput (char *str, size_t size) {
     uint32_t index = 0;
@@ -136,17 +162,17 @@ void getInput (char *str, size_t size) {
     str[index] = '\0'; 
 }
 
-const char cakeArt[] PROGMEM = "                        #,\n                        ###\n                       ## ##\n                      ##  ##\n                       ####\n                         :\n                        #####\n                       ######\n                       ##  ##\n                       ##  ##\n                       ##  ##\n                       ##  ##########\n                       ##  #############\n                  #######  ###############\n              #############################\n        .###################################\n       #####################################;\n       ##                                 ##.\n       ##                                 ##\n       #####################################\n       ##                                 ##\n       ##      Tosci\'s icecream cake      ##\n       ##       For a special Hanna       ###\n    #####                                 #####\n   ### ##################################### ###\n  ###  ##                                 ##  ###\n  ##   ## ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ##   ##\n   ##  #####################################  ##\n    ##                                       ##\n     ####                                 ####\n       ######                         ######\n          ###############################\n";
-
 /**
  * Initiates the welcome message sequence
  */
 void welcomeMessage(void) {
-    char name[7];
-    printf_P(PSTR("%S\n"),cakeArt);
-    printf_P(PSTR("Hello Hanna, happy belated birthday!"));
-    getInput(name, sizeof name);
-    //printf_P(PSTR("Your name is: %s\n"),name);
+    const char* messages[] = {welcome1, welcome2, welcome3,cakeArt, welcome4, welcome5, welcome6, welcome7, welcome8, welcome9};
+    for (int i = 0; i < 10; i++) {
+        printf_P(PSTR("%S"),messages[i]);        
+        getEnter();
+        printf_P(PSTR("\n\n"));
+    }
+    EEPROM_Write(accessLevelAddr, 1);    
 }
 
 /**
@@ -159,7 +185,6 @@ Boolean spawnTwo(void) {
     return !(prob == 9);
 } 
 
-const char padding[] PROGMEM = "        ";
 
 /**
  * Helper method to print the board to UART
@@ -185,46 +210,50 @@ void printBoard(Board *board) {
     }
 }
 
-const char logo2048[] PROGMEM = "   ___       __   __ __       __\n /\'___`\\   /\'__`\\/\\ \\\\ \\    /\'_ `\\\n/\\_\\ /\\ \\ /\\ \\/\\ \\ \\ \\\\ \\  /\\ \\L\\ \\\n\\/_/// /__\\ \\ \\ \\ \\ \\ \\\\ \\_\\/_> _ <_\n   // /_\\ \\\\ \\ \\_\\ \\ \\__ ,__\\/\\ \\L\\ \\\n  /\\______/ \\ \\____/\\/_/\\_\\_/\\ \\____/\n  \\/_____/   \\/___/    \\/_/   \\/___/\n\n";
-
 /**
  * 2048 Game 
  */
 void play2048(void) { 
-     Board board = Board_newBlankBoard();  
-     //Put down two random tiles first
-     Board_putRandom(&board, random(),spawnTwo());
-     Board_putRandom(&board, random(),spawnTwo());
-     uint8_t recievedByte;
-     Direction dir;
-     printf_P(PSTR("%S"),logo2048);
-     //Move cursor down 9 times to offset for printBoard
-     printf_P(PSTR("\n\n\n\n\n\n\n\n\n"));
-     printBoard(&board);
+    Board board = Board_newBlankBoard();  
+    //Put down two random tiles first
+    Board_putRandom(&board, random(),spawnTwo());
+    Board_putRandom(&board, random(),spawnTwo());
+    uint8_t recievedByte;
+    Direction dir;
+    printf_P(PSTR("%c[2J%c[H"),27,27);  //Clears screen, home cursor
+    printf_P(logo2048);
+    //Move cursor down 9 times to offset for printBoard
+    printf_P(PSTR("\n\n\n\n\n\n\n\n\n"));
+    printBoard(&board);
 
-     while (!Board_gameWon(&board) && !Board_gameOver(&board)) {
-         recievedByte = UART_recieveByte();
-         if (recievedByte == 'j') 
-             dir = LEFT;
-         else if (recievedByte == 'l')
-             dir = RIGHT;
-         else if (recievedByte == 'i')
-             dir = UP;
-         else if (recievedByte == 'k')
-             dir = DOWN;
-         else
-             continue;
-         if (Board_shift(dir,&board)) {
-            Board_putRandom(&board, random(), spawnTwo());
-            printBoard(&board);
-         }
-     }
-     if (Board_gameOver(&board)) {
-        printf("\nGame Lost\n"); 
-     } 
-     if (Board_gameWon(&board)) {
-        printf("\nGame Won\n");
-     }
+    while (!Board_gameWon(&board)) {
+        recievedByte = UART_recieveByte();
+        if (recievedByte == 'j') 
+            dir = LEFT;
+        else if (recievedByte == 'l')
+            dir = RIGHT;
+        else if (recievedByte == 'i')
+            dir = UP;
+        else if (recievedByte == 'k')
+            dir = DOWN;
+        else
+            continue;
+        if (Board_shift(dir,&board)) {
+           Board_putRandom(&board, random(), spawnTwo());
+           printBoard(&board);
+           if(Board_gameOver(&board)) {
+               //start a new game if game over
+               printf_P(PSTR("Damn, game over. Try again?"));
+               getEnter();
+               printf_P(PSTR("\r%c[K"),27);
+               board = Board_newBlankBoard();
+               Board_putRandom(&board, random(),spawnTwo());
+               Board_putRandom(&board, random(),spawnTwo());
+               printBoard(&board);
+           } 
+        }
+    }
+    EEPROM_Write(accessLevelAddr, 2);   
 }
 
 /**
@@ -233,6 +262,13 @@ void play2048(void) {
 void ledPuzzle(void){
     uint8_t index = 0;
     uint8_t recievedByte;
+    const char * ledMessages[] = {led1, led2, led3, led4};
+    for (int i = 0; i < 4; i++) {
+        printf_P(ledMessages[i]);
+        getEnter();
+        printf_P(PSTR("\n\n"));
+    }
+    printf_P(PSTR("-----ENCRYPTED PASSWORD-----\n"));
     printf_P(PSTR("Password: *****************"));
     printf_P(PSTR("%c[17D"),27);
     flashCount = 2 * secretMessage[index][1];
@@ -262,14 +298,60 @@ void ledPuzzle(void){
     }
 }
 
+void selectGame(void) {
+    char response[2]; 
+    if (accessLevel == 1) {
+        //Skip welcome message?
+        printf_P(PSTR("It seems like you've read through the welcome message before. Would you like to skip to 2048? [y/n]? "));
+        getInput(response,sizeof response); 
+        if (strcmp_P(response,PSTR("y")) == 0) {
+            play2048();
+            ledPuzzle();
+        } else {
+            return;
+        }
+    } else if (accessLevel == 2) {
+        //Skip welcome message or 2048? or input unlock code
+        printf_P(PSTR("It seems like you've beaten 2048, would you like to:\n  1.Play the entire game again?\n  2.Play 2048?\n  3.Look at the LED Puzzle?\n  4.Enter password/read birthday message copy?\n[1-4]:"));
+        getInput(response, sizeof response);
+        if (strcmp_P(response, PSTR("1")) == 0) {
+            return;
+        } else if (strcmp_P(response, PSTR("2")) == 0) {
+            play2048();
+            ledPuzzle();
+        } else if (strcmp_P(response, PSTR("3")) == 0) {
+            ledPuzzle(); 
+        } else if (strcmp_P(response, PSTR("4")) == 0) {
+            birthdayMessage();
+        } else {
+            return;
+        }
+    }
+}
+
+void birthdayMessage(void) {
+    if (!EEPROM_Read(messageAuthAddr)) {
+        char response[20];
+        Boolean unauthorized = TRUE;
+        while (unauthorized) {
+            printf_P(PSTR("Input password to get copy of birthday message: "));
+            getInput(response, sizeof response);
+            if (strcmp_P(response, MESSAGE_PASSWORD) == 0) {
+                EEPROM_Write(messageAuthAddr, 1);
+                unauthorized = FALSE;
+            } else {
+                printf_P(PSTR("Invalid password, try again\n"));
+            }
+        }
+    }    
+    //TODO birthday message    
+}
+
 int main(void)
 {
     setup();
-    for(;;){
-        printf("%u,%u", beat2048, eeprom_read_byte(beat2048EEPA + 1));
-        if (UART_recieveByte() == 'a')
-            eeprom_write_byte(beat2048EEPA, 69);
-        printf("\n%u", eeprom_read_byte(beat2048EEPA));
+    for(;;){ 
+        selectGame();
         welcomeMessage();
         play2048();
         ledPuzzle();

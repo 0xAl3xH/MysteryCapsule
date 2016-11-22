@@ -23,6 +23,7 @@ uint8_t EEPROM_Read(uint8_t *addr);
 void setupTimer1(void);
 void setup(void);
 uint16_t getSeed(void);
+void messageSequence(const char ** messages, uint8_t size);
 void welcomeMessage(void);
 Boolean spawnTwo(void);
 void printBoard(Board *board);
@@ -94,14 +95,15 @@ void setupTimer1(void) {
  */
 void setup(void) {
     DDRC = 0x3C; // Set up PC2-PC5 as output for LEDs
-    UART_setup(BAUD_RATE);
 
+    //Set up UART
+    UART_setup(BAUD_RATE);
     // Set up stream to use to redirect stdout and stdin to UART 
     static FILE uartSTD = FDEV_SETUP_STREAM(UART_sendByteSTD,UART_recieveByteSTD,_FDEV_SETUP_RW);
-
     // Bind stdout and stdin 
     stdout = &uartSTD;
     stdin = &uartSTD;
+    printf_P(PSTR("%c[2J%c[H"),27,27);  // Home cursor and clear screen
 
     ADC_setup();
     srandom(getSeed());
@@ -162,16 +164,20 @@ void getInput (char *str, size_t size) {
     str[index] = '\0'; 
 }
 
+void messageSequence(const char ** messages, uint8_t size) { 
+    for (int i =0; i < size; i++) {
+        printf_P(messages[i]);
+        getEnter();
+        printf_P(PSTR("\n\n"));
+    }
+}
+
 /**
  * Initiates the welcome message sequence
  */
 void welcomeMessage(void) {
     const char* messages[] = {welcome1, welcome2, welcome3,cakeArt, welcome4, welcome5, welcome6, welcome7, welcome8, welcome9};
-    for (int i = 0; i < 10; i++) {
-        printf_P(PSTR("%S"),messages[i]);        
-        getEnter();
-        printf_P(PSTR("\n\n"));
-    }
+    messageSequence(messages, 10);
     EEPROM_Write(accessLevelAddr, 1);    
 }
 
@@ -192,7 +198,7 @@ Boolean spawnTwo(void) {
 void printBoard(Board *board) {
     //The following code will make heavy use of the printf_P function to save RAM space
     uint16_t boardVal;
-    //Get cursor back to original position
+    //VT100 escape sequence to get cursor back to original position
     printf_P(PSTR("%c[9A"),27);
 
     printf_P(PSTR("%S#-------------------#\n"),padding);
@@ -263,11 +269,7 @@ void ledPuzzle(void){
     uint8_t index = 0;
     uint8_t recievedByte;
     const char * ledMessages[] = {led1, led2, led3, led4};
-    for (int i = 0; i < 4; i++) {
-        printf_P(ledMessages[i]);
-        getEnter();
-        printf_P(PSTR("\n\n"));
-    }
+    messageSequence(ledMessages,4);
     printf_P(PSTR("-----ENCRYPTED PASSWORD-----\n"));
     printf_P(PSTR("Password: *****************"));
     printf_P(PSTR("%c[17D"),27);
@@ -339,12 +341,15 @@ void birthdayMessage(void) {
             if (strcmp_P(response, MESSAGE_PASSWORD) == 0) {
                 EEPROM_Write(messageAuthAddr, 1);
                 unauthorized = FALSE;
+                printf_P(PSTR("\n"));
             } else {
                 printf_P(PSTR("Invalid password, try again\n"));
             }
         }
     }    
-    //TODO birthday message    
+    const char * messages[] = {birthday1,birthday2,birthday3,birthday4};    
+    messageSequence(messages,4);
+    while(1) {}
 }
 
 int main(void)
